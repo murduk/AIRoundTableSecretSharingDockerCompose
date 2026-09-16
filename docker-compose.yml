@@ -5,7 +5,7 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_PID: Developer
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Your_strong_Password123}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
     ports:
       - "1433:1433"
     volumes:
@@ -26,17 +26,17 @@ services:
     platform: linux/amd64
     environment:
       AvaEntra__PublicOrigin: https://localhost:5100
-      AvaEntra__AdminUsername: ${AVAENTRA_ADMIN_USERNAME:-admin}
-      AvaEntra__AdminPassword: ${AVAENTRA_ADMIN_PASSWORD:-AdminPassw0rd!}
-      AvaEntra__SeedUserPassword: ${AVAENTRA_SEED_USER_PASSWORD:-Passw0rd!}
-      AvaEntra__SeedBackendSecret: ${AVAENTRA_SEED_BACKEND_SECRET:-dev-backend-secret}
+      AvaEntra__AdminUsername: ${AVAENTRA_ADMIN_USERNAME}
+      AvaEntra__AdminPassword: ${AVAENTRA_ADMIN_PASSWORD}
+      AvaEntra__SeedUserPassword: ${AVAENTRA_SEED_USER_PASSWORD}
+      AvaEntra__SeedBackendSecret: ${AVAENTRA_SEED_BACKEND_SECRET}
     ports:
       - "5100:8443"
     volumes:
       - avaentra-data:/app/storage
 
   api:
-    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-c058bab-testing
+    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-8d57d3d
     platform: linux/amd64
     depends_on:
       sqlserver:
@@ -57,12 +57,12 @@ services:
       AzureAd__AdminGroupId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
       # Developers group (alice@avaentra.local, bob@avaentra.local)
       AzureAd__PartnerGroupId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRoundTableSecretSharing;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Your_strong_Password123};TrustServerCertificate=True;Encrypt=True"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRoundTableSecretSharing;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=True"
     ports:
       - "3000:3000"
 
   ui:
-    image: mozdag.azurecr.io/airoundtable-web-ui-dev:latest
+    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:357f76d
     platform: linux/amd64
     depends_on:
       api:
