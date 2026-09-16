@@ -1,0 +1,82 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Your_strong_Password123}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "timeout 1 bash -c '</dev/tcp/localhost/1433' || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  avaentra:
+    image: ghcr.io/murduk/avaentra:latest
+    platform: linux/amd64
+    environment:
+      AvaEntra__PublicOrigin: https://localhost:5100
+      AvaEntra__AdminUsername: ${AVAENTRA_ADMIN_USERNAME:-admin}
+      AvaEntra__AdminPassword: ${AVAENTRA_ADMIN_PASSWORD:-AdminPassw0rd!}
+      AvaEntra__SeedUserPassword: ${AVAENTRA_SEED_USER_PASSWORD:-Passw0rd!}
+      AvaEntra__SeedBackendSecret: ${AVAENTRA_SEED_BACKEND_SECRET:-dev-backend-secret}
+    ports:
+      - "5100:8443"
+    volumes:
+      - avaentra-data:/app/storage
+
+  api:
+    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-c058bab-testing
+    platform: linux/amd64
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      avaentra:
+        condition: service_started
+    # So AzureAd__Instance=https://localhost:5100/ resolves to the published AvaEntra port on the host
+    extra_hosts:
+      - "localhost:host-gateway"
+    environment:
+      ASPNETCORE_URLS: http://+:3000
+      ASPNETCORE_ENVIRONMENT: Development
+      AzureAd__Instance: https://localhost:5100/
+      AzureAd__TenantId: "11111111-1111-1111-1111-111111111111"
+      # Sample API app registration (AvaEntra seed)
+      AzureAd__ClientId: "66666666-6666-6666-6666-666666666666"
+      # Administrators group (admin@avaentra.local)
+      AzureAd__AdminGroupId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+      # Developers group (alice@avaentra.local, bob@avaentra.local)
+      AzureAd__PartnerGroupId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRoundTableSecretSharing;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Your_strong_Password123};TrustServerCertificate=True;Encrypt=True"
+    ports:
+      - "3000:3000"
+
+  ui:
+    image: mozdag.azurecr.io/airoundtable-web-ui-dev:latest
+    platform: linux/amd64
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "5173:3000"
+    environment:
+      VITE_API_URL: http://localhost:3000
+      VITE_REDIRECT_URL: http://localhost:5173
+      VITE_MSAL_CLIENT_ID: 55555555-5555-5555-5555-555555555555
+      VITE_MSAL_AUTHORITY: https://localhost:5100/11111111-1111-1111-1111-111111111111
+      VITE_MSAL_API_SCOPE: api://66666666-6666-6666-6666-666666666666/access_as_user
+      VITE_ADMIN_GROUP_ID: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+      VITE_PARTNER_GROUP_ID: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+volumes:
+  sqlserver-data:
+  avaentra-data:
