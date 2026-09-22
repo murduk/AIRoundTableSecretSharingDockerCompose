@@ -22,7 +22,7 @@ services:
       start_period: 40s
 
   avaentra:
-    image: ghcr.io/murduk/avaentra:latest
+    image: ghcr.io/murduk/avaentra:sha-e6f9869
     platform: linux/amd64
     environment:
       AvaEntra__PublicOrigin: https://localhost:5100
@@ -47,7 +47,7 @@ services:
       - avaentra-data:/app/storage
 
   api:
-    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-059e4d8
+    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-29b6c5e
     platform: linux/amd64
     depends_on:
       sqlserver:
@@ -74,18 +74,19 @@ services:
       - "3000:3000"
 
   ui:
-    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:357f76d
+    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:8c50aa6
     platform: linux/amd64
     depends_on:
       api:
         condition: service_started
     ports:
-      - "5173:3000"
+      - "5173:5173"
     environment:
       VITE_API_URL: http://localhost:3000
       VITE_REDIRECT_URL: http://localhost:5173
       VITE_MSAL_CLIENT_ID: 55555555-5555-5555-5555-555555555555
       VITE_MSAL_AUTHORITY: https://localhost:5100/11111111-1111-1111-1111-111111111111
+      VITE_MSAL_KNOWN_AUTHORITIES: localhost:5100
       VITE_MSAL_API_SCOPE: api://sample-api/access_as_user
       VITE_ADMIN_GROUP_ID: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
       VITE_PARTNER_GROUP_ID: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
