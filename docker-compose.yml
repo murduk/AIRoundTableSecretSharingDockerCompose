@@ -74,7 +74,7 @@ services:
       - "3000:3000"
 
   ui:
-    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:d48218a
+    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:1339846
     platform: linux/amd64
     depends_on:
       api:
