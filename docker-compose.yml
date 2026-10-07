@@ -47,7 +47,7 @@ services:
       - avaentra-data:/app/storage
 
   api:
-    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-7f6ee5f
+    image: ghcr.io/datapartnership/airoundtablesecretsharing/airoundtablesecretsharingapi:sha-fbf1ccd
     platform: linux/amd64
     depends_on:
       sqlserver:
@@ -74,7 +74,7 @@ services:
       - "3000:3000"
 
   ui:
-    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:1339846
+    image: ghcr.io/datapartnership/airoundtablesecretsharingwebui:d6aa18a
     platform: linux/amd64
     depends_on:
       api:
